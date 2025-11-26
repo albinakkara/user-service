@@ -5,13 +5,10 @@ import com.telemedicine.user_service.data.repository.UserRepository;
 import com.telemedicine.user_service.dto.LoginRequestDto;
 import com.telemedicine.user_service.dto.RegisterRequestDto;
 import com.telemedicine.user_service.dto.UserCreationRequest;
+import com.telemedicine.user_service.util.feign.DoctorClient;
 import com.telemedicine.user_service.util.feign.PatientClient;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @Service
 public class AuthService {
@@ -19,11 +16,13 @@ public class AuthService {
     private final UserRepository userRepo;
     private final PasswordEncoder encoder;
     private final PatientClient patientClient;
+    private final DoctorClient doctorClient;
 
-    AuthService(UserRepository userRepo, PasswordEncoder encoder, PatientClient patientClient){
+    AuthService(UserRepository userRepo, PasswordEncoder encoder, PatientClient patientClient, DoctorClient doctorClient){
         this.userRepo = userRepo;
         this.encoder = encoder;
         this.patientClient = patientClient;
+        this.doctorClient = doctorClient;
     }
 
     public String register(RegisterRequestDto req) {
@@ -62,10 +61,8 @@ public class AuthService {
         UserCreationRequest body = new UserCreationRequest(registerRequestDto.getFirstName(), registerRequestDto.getLastName(), registerRequestDto.getEmail());
 
         switch (role.toUpperCase()) {
-            case "PATIENT" -> patientClient.createPatient(body);
-            case "DOCTOR" -> {
-                break;
-            }
+            case "PATIENT" -> patientClient.createPatientSkeleton(body);
+            case "DOCTOR" -> doctorClient.createDoctorSkeleton(body);
             case "ADMIN" -> {
             }
         }
